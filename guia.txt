@@ -1,0 +1,86 @@
+1. Obtención, limpieza y enriquecimiento de datos
+
+Descargar datos históricos (precios, volumen, etc.)
+
+Limpieza y formato (fechas, NaNs, duplicados)
+
+Cálculo de indicadores técnicos (RSI, MACD, medias móviles, bandas de Bollinger, Fibonacci, stochastic, etc.)
+
+Creación de variables derivadas y preparación para análisis
+
+2. Análisis exploratorio de datos (EDA)
+- Estadísticas descriptivas básicas (media, mediana, std, etc.)
+
+- Visualización de series temporales de precios e indicadores
+
+- Análisis de distribución (histogramas, KDE)
+
+- Test de normalidad (Shapiro-Wilk, Kolmogorov-Smirnov)
+
+- Correlaciones entre indicadores y retorno objetivo
+
+- Detección de outliers
+
+3. Cálculos de indicadores técnicos
+- RSI, MACD, Stochastic, medias móviles, bandas de Bollinger, Fibonacci, etc.
+
+- Ingeniería de features (rolling windows, diferencias, ratios, etc.)
+
+4. Generación de señales de trading
+- Definir reglas simples (cruces de medias, umbrales RSI, etc.)
+
+- Combinar señales para crear una señal general 
+
+5. Simulación de inversión / backtesting
+
+Aplicar la lógica de inversión a largo plazo:
+
+- Inversión fuerte cuando hay señal (ej. 1000€)
+
+- Aporte semanal fijo (ej. 100€)
+
+- Sin desinversión en caídas
+
+- Calcular capital invertido, número de acciones, valor del portafolio
+
+- Métricas de performance: ganancias/pérdidas totales, número de operaciones, etc.
+
+6. Validación estadística
+- Comparar resultados con señales:
+
+    Chi-cuadrado para asociación entre señal y éxito/fallo
+
+    Test de diferencia de medias para comparar rendimiento con y sin señal
+
+    Análisis de correlaciones
+
+    Visualizar la distribución de retornos en días con señal vs sin señal
+
+7. Machine Learning
+Preparar dataset para ML:
+
+Variables predictoras: indicadores técnicos, variables temporales, etc.
+
+Target: por ejemplo, si el retorno a corto/medio plazo fue positivo o negativo
+
+División en train/test
+
+Modelado:
+
+Modelos clásicos: Random Forest, XGBoost, Logistic Regression, etc.
+
+Validación cruzada y tuning de hiperparámetros
+
+Evaluación con métricas: precisión, recall, F1, AUC-ROC, etc.
+
+Interpretabilidad (feature importance, SHAP values)
+
+8. Simulación basada en predicciones ML
+Aplicar señales generadas por el modelo ML para decidir inversión
+
+Repetir cálculo de portafolio y métricas de performance
+
+9. Visualización y reporte
+Gráficos interactivos con Plotly o Streamlit
+
+Informe final con insights, gráficas y recomendaciones

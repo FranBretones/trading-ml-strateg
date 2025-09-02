@@ -1,3 +1,5 @@
+> *Branch creada para analizar el código y hacer comentarios.*
+
 # Indicadores Técnicos - Trading ML Strategy
 
 Este documento describe los indicadores técnicos utilizados en el proyecto para análisis de trading diario. Cada indicador se calcula a partir de datos OHLCV (`open`, `high`, `low`, `close`, `volume`) y se explica su propósito y parámetros estándar.

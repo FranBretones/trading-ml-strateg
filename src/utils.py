@@ -3,11 +3,6 @@
 # Manipuladcion de datos 
 import pandas as pd 
 import numpy as np
-from datetime import datetime, timedelta
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
-import matplotlib.pyplot as plt
 
 #libreria para descargar datos de productos financieros
 import yfinance as yf 
@@ -19,47 +14,29 @@ from ta.trend import MACD, ADXIndicator,IchimokuIndicator
 from ta.volatility import BollingerBands, AverageTrueRange
 from ta.trend import SMAIndicator, EMAIndicator
 
-# Librerias para modelos de ML
-from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, ConfusionMatrixDisplay
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
-from imblearn.over_sampling import SMOTE
-from xgboost import XGBClassifier
-
-import pickle
-import os
-
 # -----------------------------------------------------------------------------
 # FUNCIONES DE DESCARGA, LIMPIEZA DE DATOS Y CÁLCULO DE INDICADORES
 # -----------------------------------------------------------------------------
 
-def extract_clean_ticker(ticker: str, start=None, end=None, interval=None) -> pd.DataFrame:
+def extract_clean_ticker(ticker: str, **kwargs) -> pd.DataFrame:
     """
     Descarga y limpia datos históricos de un ticker con yfinance y genera todo el dataframe que se utilizara para analizar el stock. 
     
     Args:
         ticker (str): Símbolo del ticker (ej: 'VOO', '^GSPC')
-        start (str): Fecha de inicio 'YYYY-MM-DD'
-        end (str): Fecha de fin 'YYYY-MM-DD'
-        interval (str): Intervalo temporal ('1d', '1wk', '1h', etc.)
+        **kwargs: Parámetros adicionales para `yfinance.download`, como:
+            start (str): Fecha de inicio 'YYYY-MM-DD'
+            end (str): Fecha de fin 'YYYY-MM-DD'
+            interval (str): Intervalo temporal ('1d', '1wk', '1h', etc.)
         
     Returns:
         pd.DataFrame: DataFrame limpio con columnas estandarizadas.
     """
     df = yf.download(
         tickers=ticker,
-        start=start,
-        end=end,
-        interval=interval,
         auto_adjust=True,
-        progress=False
+        progress=False,
+        **kwargs
     )
 
     if isinstance(df.columns, pd.MultiIndex):

@@ -4,6 +4,7 @@
 import os
 import sys
 from pathlib import Path
+import glob
 
 # Manipuladcion de datos 
 import pandas as pd 
@@ -27,7 +28,7 @@ from ta.trend import SMAIndicator, EMAIndicator
 # Librerias para modelos de ML
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, ConfusionMatrixDisplay,confusion_matrix
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -199,8 +200,6 @@ def añadir_indicadores_tecnicos(df: pd.DataFrame) -> pd.DataFrame:
 # -----------------------------------------------------------------------------
 
 ## Estrategia Cruce de Precio sobre Media Móvil (Tendencia): 
-# Esta estrategia genera la señal cuando el precio cruza hacia arriba la ema rapida 
-# ( esta puede ser la ema = 20, ema=9, etc .. segun le indiquemos) 
 
 def ema_price_signal(df, ema_fast='ema_20', close='close', rsi='rsi'):
     """
@@ -1243,4 +1242,122 @@ def evaluate_all_strategies(df_original, signal_columns, backtest_func, backtest
     return results_df
 
 
+# -----------------------------------------------------------------------------
+# FUNCIONES DE MACHINE LEARNING
+# -----------------------------------------------------------------------------
 
+def train_evaluate_models (model, model_name:str, X_train, y_train, X_test, y_test,save_model:bool=False, save_dir : str ='models'):
+    """
+    Esta funcion entrena y evalua un modelo de machine learning, mostrando el informe de clasificacion y la matriz de confusion.
+    Ademas, si se especifica, guarda el modelo entrenado en un archivo pickle.
+    Parametros:
+    -----------
+        model: El modelo de machine learning a entrenar (debe tener los metodos fit y predict).
+        model_name (str): Nombre del modelo, utilizado para guardar el archivo.
+        X_train: Datos de entrenamiento (features).
+        y_train: Etiquetas de entrenamiento (target).
+        X_test: Datos de prueba (features).
+        y_test: Etiquetas de prueba (target).
+        save_model (bool, opcional): Si es True, guarda el modelo entrenado. Por defecto False.
+        save_dir (str, opcional): Directorio donde se guardará el modelo. Por defecto 'models'.
+    Returns:
+    -----------
+        El modelo entrenado.
+    Notas:
+        - Asegúrate de que el directorio especificado en `save_dir` existe o se puede crear.
+        - El modelo debe ser compatible con scikit-learn (tener los métodos fit y predict).
+        - Se requiere que las librerias matplotlib, sklearn y pickle esten importadas.
+    """
+    
+    print(f"Entrenando modelo de : {model_name}")
+    
+    model.fit(X_train,y_train)
+    y_pred = model.predict(X_test)
+    
+    print(f"Informe de Clasisficación:{model_name}")
+    print(classification_report(y_test,y_pred))
+    
+    print(f"Matriz de Confusión de {model_name}")
+    ConfusionMatrixDisplay.from_estimator(model,X_test,y_test,cmap='Blues')
+    plt.title(f'Matriz de Confusión - {model_name}')
+    plt.show()
+    
+    if save_model: 
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+            print(f"Carpeta '{save_dir} creada ")
+        filepath = os.path.join(save_dir,f'{model_name}.pkl')
+        with open(filepath,'wb') as f: 
+            pickle.dump(model,f)
+        print(f'El modelo se ha guardado con exito')
+
+    return model 
+
+
+def generar_resumen_completo_modelos(model_dir: str, X_test, y_test) -> pd.DataFrame:
+    """
+    Carga todos los modelos .pkl de un directorio, los evalúa y devuelve un 
+    DataFrame con un resumen completo de métricas, incluyendo los componentes
+    de la matriz de confusión.
+
+    Parámetros:
+    -----------
+
+        model_dir (str): La ruta a la carpeta que contiene los archivos .pkl de los modelos.
+        X_test: El conjunto de características de prueba (ya escalado).
+        y_test: Las etiquetas reales del conjunto de prueba.
+
+    Returns:
+    -----------
+        pd.DataFrame: Un DataFrame con el resumen de rendimiento de cada modelo.
+    Notas:
+        - Asegúrate de que el directorio especificado en `model_dir` existe y contiene archivos .pkl.
+        - Los modelos deben ser compatibles con scikit-learn (tener el método predict).
+        - Se requiere que las librerias pandas, sklearn, glob, os y pickle esten importadas.
+    """
+    results_list = []
+    
+    # Encontrar todos los archivos .pkl en el directorio especificado
+    model_paths = glob.glob(os.path.join(model_dir, '*.pkl'))
+    
+    print(f"Encontrados {len(model_paths)} modelos en '{model_dir}'.")
+    
+    for filepath in model_paths:
+
+        model_name = os.path.basename(filepath).replace('.pkl', '')
+
+
+        if 'scaler' in model_name.lower():
+            continue
+            
+        with open(filepath, 'rb') as f:
+            model = pickle.load(f)
+        
+
+        y_pred = model.predict(X_test)
+        
+
+        report_dict = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+        
+
+        tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+
+        flat_results = {
+            'Modelo': model_name,
+            'precision_1': report_dict['1']['precision'],
+            'recall_1': report_dict['1']['recall'],
+            'f1-score_1': report_dict['1']['f1-score'],
+            'accuracy': report_dict['accuracy'],
+            'Verdaderos Positivos (TP)': tp,
+            'Falsos Positivos (FP)': fp,
+            'Verdaderos Negativos (TN)': tn,
+            'Falsos Negativos (FN)': fn
+        }
+        results_list.append(flat_results)
+        
+
+    results_df = pd.DataFrame(results_list)
+    results_df = results_df.set_index('Modelo')
+    
+    print("Evaluación completada ")
+    return results_df

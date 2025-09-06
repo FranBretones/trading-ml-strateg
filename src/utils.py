@@ -763,14 +763,11 @@ def backtest_dca_pure(df, price_col='close', date_col='date', monthly_invest=200
         'Total Contributions': final_contributions,
         'Absolute Return': absolute_return,
         'Percentage Return': percentage_return,
-        'Trading PnL': 0,
-        'Trading Capital Used': 0,
-        'Open Trades at End': 0,
-        'Value of Open Trades': 0
     }
     
     print(" Resultados para la estrategia: DCA Puro ")
     print(f"Valor Final del Portafolio: ${final_value:,.2f}")
+    print(f"Ganancia/Pérdida Absoluta: ${absolute_return:,.2f}")
     print(f"Total Aportado: ${final_contributions:,.2f}")
     print(f"Retorno Porcentual: {percentage_return:.2f}%\n")
 
@@ -909,6 +906,7 @@ def backtest_dca_plus_trading_WITH_SL(df, price_col='close',
     
     if verbose:
         print(f"Resultados para: {signal_col} (Con SL)")
+        print(f"Valor Final del Portafolio: ${final_value:,.2f}")
         print(f"Retorno Porcentual: {percentage_return:.2f}%")
         print(f"Posiciones Abiertas al Final: {open_trades_at_end}")
         print(f"Valor de Posiciones Abiertas: ${value_of_open_trades:,.2f}")
@@ -918,6 +916,7 @@ def backtest_dca_plus_trading_WITH_SL(df, price_col='close',
         print(f"Trading PnL: ${trading_pnl:,.2f}")
         print(f"Capital Usado en Trading: ${trading_contributions:,.2f}\n")
         print(f"Total DCA Shares: {dca_shares:,.2f}\n")
+
     return results
 
 
@@ -1044,15 +1043,22 @@ def backtest_with_atr_SL(df, price_col='close', signal_col='signal_ema_price',
         'Trading Capital Used': trading_contributions, 
         'Open Trades at End': open_trades_at_end, 
         'Value of Open Trades': value_of_open_trades,
-        'Sharpe Ratio': sharpe_ratio
+        'Sharpe Ratio': sharpe_ratio,
+        'Total DCA Shares':dca_shares
     }
     
     if verbose: 
         print(f"Resultados para: {signal_col} (Con SL)")
+        print(f"Valor Final del Portafolio: ${final_value:,.2f}")
         print(f"Retorno Porcentual: {percentage_return:.2f}%")
         print(f"Posiciones Abiertas al Final: {open_trades_at_end}")
         print(f"Valor de Posiciones Abiertas: ${value_of_open_trades:,.2f}")
         print(f"Sharpe Ratio: {sharpe_ratio:.2f}\n")
+        print(f"Valor Final del Portafolio: ${final_value:,.2f}")
+        print(f"Total Aportado: ${final_contributions:,.2f}\n")
+        print(f"Trading PnL: ${trading_pnl:,.2f}")
+        print(f"Capital Usado en Trading: ${trading_contributions:,.2f}\n")
+        print(f"Total DCA Shares: {dca_shares:,.2f}\n")
         
     return result
 
@@ -1176,7 +1182,8 @@ def backtest_dca_plus_trading_NO_SL(df, price_col='close', signal_col='signal_em
         'Trading Capital Used': trading_contributions,
         'Open Trades at End': open_trades_at_end,    
         'Value of Open Trades': value_of_open_trades,
-        'Sharpe Ratio': sharpe_ratio
+        'Sharpe Ratio': sharpe_ratio,
+        'Total DCA Shares':dca_shares
     }
     
     if verbose:
@@ -1190,6 +1197,7 @@ def backtest_dca_plus_trading_NO_SL(df, price_col='close', signal_col='signal_em
         print(f"Sharpe Ratio: {sharpe_ratio:.2f}\n")
         print(f"Total DCA Shares: {dca_shares:.4f}")
         print(f"Total DCA Contributions: ${total_dca_contributions + initial_trading_cash:,.2f}\n")
+        print(f"Total Trading Contributions: ${trading_contributions:,.2f}\n")
 
     return results
 
@@ -1233,3 +1241,6 @@ def evaluate_all_strategies(df_original, signal_columns, backtest_func, backtest
     results_df = pd.DataFrame(results_list).sort_values(by='Percentage Return', ascending=False).reset_index(drop=True)
     
     return results_df
+
+
+

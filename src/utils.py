@@ -1246,6 +1246,30 @@ def evaluate_all_strategies(df_original, signal_columns, backtest_func, backtest
 # FUNCIONES DE MACHINE LEARNING
 # -----------------------------------------------------------------------------
 
+def crear_target(df, dias_futuro=20, umbral_retorno=0.08):
+    """
+    Crea la variable objetivo 'target'.
+    Será 1 si el precio sube más del 'umbral_retorno' en los próximos 'dias_futuro'.
+    Parametros:
+    -----------
+        df (pd.DataFrame): DataFrame con los datos históricos.
+        dias_futuro (int, opcional): Número de días en el futuro para calcular el retorno. Por defecto 20.
+        umbral_retorno (float, opcional): Umbral de retorno para clasificar como 1. Por defecto 0.08 (8%).
+    Returns:
+    -----------
+        pd.DataFrame: DataFrame con la nueva columna 'target'.
+    Notas:
+        - Asegúrate de que el DataFrame contiene una columna 'close' con los precios de cierre.
+        - Si no se desea modificar el DataFrame original, pasar una copia (por ejemplo, df.copy()).
+        - La función eliminará las filas con NaN en la columna 'target' resultante.
+    """
+    
+    df['retorno_futuro'] = df['close'].shift(-dias_futuro) / df['close'] - 1
+    df['target'] = (df['retorno_futuro'] > umbral_retorno).astype(int)
+    df = df.dropna(subset=['retorno_futuro', 'target'])
+    return df
+
+
 def train_evaluate_models (model, model_name:str, X_train, y_train, X_test, y_test,save_model:bool=False, save_dir : str ='models'):
     """
     Esta funcion entrena y evalua un modelo de machine learning, mostrando el informe de clasificacion y la matriz de confusion.
@@ -1354,7 +1378,6 @@ def generar_resumen_completo_modelos(model_dir: str, X_test, y_test) -> pd.DataF
             'Falsos Negativos (FN)': fn
         }
         results_list.append(flat_results)
-        
 
     results_df = pd.DataFrame(results_list)
     results_df = results_df.set_index('Modelo')

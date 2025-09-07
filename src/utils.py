@@ -1242,6 +1242,155 @@ def evaluate_all_strategies(df_original, signal_columns, backtest_func, backtest
     return results_df
 
 
+def backtest_dca_self_sufficient(df, price_col='close', 
+                                signal_col='signal_ema_price',
+                                monthly_invest=200, 
+                                trade_amount=50,
+                                take_profit_pct=0.125, 
+                                stop_loss_pct=-0.05, 
+                                date_col='date', 
+                                initial_trading_cash=1000, 
+                                verbose=True,
+                                plot=True):
+    """
+    Backtest donde:
+    - Capital inicial financia DCA y trading.
+    - Las compras mensuales DCA NO se venden nunca.
+    - Solo se venden las compras realizadas por señales de trading con SL/TP.
+    - Se calcula retorno, Sharpe y valor de cartera.
+    - Genera un gráfico de evolución del patrimonio si plot=True.
+    """
+
+    df[date_col] = pd.to_datetime(df[date_col])
+    
+    # Capital disponible para operaciones (DCA + trading)
+    cash = initial_trading_cash
+    
+    # Cantidad de acciones acumuladas por DCA (no se venden nunca)
+    dca_shares = 0
+    
+    # Lista de operaciones abiertas por trading
+    open_trades = []
+    
+    # Seguimiento de contribuciones y PnL
+    total_dca_contributions = 0
+    trading_contributions = 0
+    trading_pnl = 0
+    last_month = None
+    
+    # Para gráficos
+    cash_list = []
+    open_trades_list = []
+    dca_shares_list = []
+    portfolio_values = []
+    daily_returns = []
+
+    for i, row in df.iterrows():
+        current_price = row[price_col]
+        current_date = row[date_col]
+        
+        # ---------- DCA mensual ----------
+        if last_month is None or current_date.month != last_month:
+            if cash >= monthly_invest:
+                dca_shares += monthly_invest / current_price
+                cash -= monthly_invest
+                total_dca_contributions += monthly_invest
+            last_month = current_date.month
+        
+        # ---------- Trading con señales ----------
+        remaining_trades = []
+        for trade in open_trades:
+            return_pct = (current_price - trade['buy_price']) / trade['buy_price']
+            if return_pct >= take_profit_pct or return_pct <= stop_loss_pct:
+                sell_value = trade['shares'] * current_price
+                cash += sell_value
+                profit_or_loss = sell_value - (trade['shares'] * trade['buy_price'])
+                trading_pnl += profit_or_loss
+            else:
+                remaining_trades.append(trade)
+        open_trades = remaining_trades
+
+        if row[signal_col] and cash >= trade_amount:
+            shares_bought = trade_amount / current_price
+            cash -= trade_amount
+            trading_contributions += trade_amount
+            open_trades.append({'buy_price': current_price, 'shares': shares_bought})
+        
+        # ---------- Guardar info diaria para gráfico ----------
+        cash_list.append(cash)
+        open_trades_list.append(open_trades.copy())
+        dca_shares_list.append(dca_shares)
+        
+        # Valor total de cartera
+        current_portfolio_value = cash + (dca_shares * current_price) + sum(t['shares'] * current_price for t in open_trades)
+        portfolio_values.append(current_portfolio_value)
+        
+        # Retorno diario
+        if len(portfolio_values) > 1:
+            daily_return = (portfolio_values[-1] - portfolio_values[-2]) / portfolio_values[-2]
+            daily_returns.append(daily_return)
+    
+    # ---------- Sharpe Ratio ----------
+    if len(daily_returns) > 0:
+        risk_free_rate = 0.02  # 2% anual
+        daily_rf_rate = (1 + risk_free_rate) ** (1/252) - 1
+        excess_returns = [r - daily_rf_rate for r in daily_returns]
+        sharpe_ratio = (np.mean(excess_returns) * np.sqrt(252)) / (np.std(excess_returns) if np.std(excess_returns) > 0 else float('inf'))
+    else:
+        sharpe_ratio = 0
+            
+    final_price = df[price_col].iloc[-1]
+    dca_value = dca_shares * final_price
+    open_trades_at_end = len(open_trades)
+    value_of_open_trades = sum(trade['shares'] * final_price for trade in open_trades)
+    
+    final_value = cash + dca_value + value_of_open_trades
+    final_contributions = total_dca_contributions + initial_trading_cash
+    absolute_return = final_value - final_contributions
+    percentage_return = (absolute_return / final_contributions) * 100 if final_contributions > 0 else 0
+
+    results = {
+        'Strategy': f"{signal_col} (Self-Sufficient)",
+        'Final Portfolio Value': final_value,
+        'Total Contributions': final_contributions,
+        'Absolute Return': absolute_return,
+        'Percentage Return': percentage_return,
+        'Trading PnL': trading_pnl,
+        'Trading Capital Used': trading_contributions,
+        'Open Trades at End': open_trades_at_end,
+        'Value of Open Trades': value_of_open_trades,
+        'Sharpe Ratio': sharpe_ratio,
+        'DCA Total Shares': dca_shares_list.count(dca_shares),
+        'DCA Shares Value': dca_value,
+    }
+    
+    if verbose:
+        print(f"Resultados para: {signal_col} (Self-Sufficient)")
+        print(f"Retorno Porcentual: {percentage_return:.2f}%")
+        print(f"Posiciones Abiertas al Final: {open_trades_at_end}")
+        print(f"Valor de Posiciones Abiertas: ${value_of_open_trades:,.2f}")
+        print(f"Sharpe Ratio: {sharpe_ratio:.2f}\n")
+    
+    # ---------- Gráfico de evolución de la cartera ----------
+    if plot:
+        df_plot = df.copy()
+        df_plot['dca_value'] = [s * p for s, p in zip(dca_shares_list, df[price_col])]
+        df_plot['trading_value'] = [sum(t['shares'] * p for t in trades) for trades, p in zip(open_trades_list, df[price_col])]
+        df_plot['cash'] = cash_list
+        df_plot['total_portfolio'] = df_plot['dca_value'] + df_plot['trading_value'] + df_plot['cash']
+        
+        plt.figure(figsize=(14,7))
+        plt.plot(df_plot['date'], df_plot['total_portfolio'], label='Capital Total', color='blue', linewidth=2)
+        plt.fill_between(df_plot['date'], 0, df_plot['dca_value'], color='green', alpha=0.3, label='DCA acumulado')
+        plt.fill_between(df_plot['date'], df_plot['dca_value'], df_plot['dca_value'] + df_plot['trading_value'], color='red', alpha=0.3, label='Trades abiertos')
+        plt.title('Backtest: Estrategia Self-Sufficient con DCA y Trading')
+        plt.xlabel('Fecha')
+        plt.ylabel('Valor de la Cartera ($)')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    return results
 # -----------------------------------------------------------------------------
 # FUNCIONES DE MACHINE LEARNING
 # -----------------------------------------------------------------------------

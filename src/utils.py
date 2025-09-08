@@ -1360,7 +1360,7 @@ def backtest_dca_self_sufficient(df, price_col='close',
         'Open Trades at End': open_trades_at_end,
         'Value of Open Trades': value_of_open_trades,
         'Sharpe Ratio': sharpe_ratio,
-        'DCA Total Shares': dca_shares_list.count(dca_shares),
+        'DCA Total Shares': dca_shares,
         'DCA Shares Value': dca_value,
     }
     

@@ -40,9 +40,9 @@ from imblearn.over_sampling import SMOTE
 from xgboost import XGBClassifier
 import pickle
 
-# -----------------------------------------------------------------------------
+# -------
 # FUNCIONES DE DESCARGA, LIMPIEZA DE DATOS Y CÁLCULO DE INDICADORES
-# -----------------------------------------------------------------------------
+# -------
 
 def extract_clean_ticker(ticker: str, start=None, end=None, interval=None) -> pd.DataFrame:
     """
@@ -101,12 +101,12 @@ def añadir_indicadores_tecnicos(df: pd.DataFrame) -> pd.DataFrame:
     al DataFrame de precios OHLCV para análisis diario.
     
     Parámetros:
-    -----------
+    -
     df : pd.DataFrame
         Dataframe con columnas 'open', 'high', 'low', 'close', 'volume'.
         
     Indicadores incluidos:
-    ---------------------
+    -
     - RSI (Relative Strength Index) : fuerza relativa de precios.
     - MACD : tendencia y momentum; columnas macd, macd_signal, macd_diff.
     - Estocástico (%K, %D) : sobrecompra/sobreventa.
@@ -195,9 +195,9 @@ def añadir_indicadores_tecnicos(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-# -----------------------------------------------------------------------------
+# -------
 # ESTRATEGIAS DE SEÑALES DE COMPRA
-# -----------------------------------------------------------------------------
+# -------
 
 ## Estrategia Cruce de Precio sobre Media Móvil (Tendencia): 
 
@@ -209,7 +209,7 @@ def ema_price_signal(df, ema_fast='ema_20', close='close', rsi='rsi'):
         - El RSI está dentro de un rango especificado (por defecto: entre 20 y 50),
         - Las condiciones de cruce se cumplen tanto en la fila actual como en la anterior.
     Parámetros
-    ----------
+    
     df : pandas.DataFrame
         DataFrame que contiene al menos las columnas de precio de cierre, EMA y RSI.
     ema_fast : str, opcional
@@ -284,7 +284,7 @@ def stochastic_oversold_signal(df, k_line='stochastic_k', d_line='stochastic_d',
     y se produce un cruce alcista del %K sobre el %D en un contexto de tendencia alcista.
 
     Parámetros
-    ----------
+    
     df : pandas.DataFrame
         DataFrame que debe contener al menos las columnas especificadas por los argumentos
         `k_line`, `d_line`, `ema_long` y `close`. La función añade una columna booleana
@@ -300,7 +300,7 @@ def stochastic_oversold_signal(df, k_line='stochastic_k', d_line='stochastic_d',
         Nombre de la columna de precios de cierre. Por defecto 'close'.
 
     Valor devuelto
-    --------------
+    ----
     pandas.DataFrame
         El mismo DataFrame de entrada con una nueva columna booleana 'signal_stochastic_buy'.
         True indica que en esa fila se cumplen simultáneamente:
@@ -310,7 +310,7 @@ def stochastic_oversold_signal(df, k_line='stochastic_k', d_line='stochastic_d',
         La función modifica el DataFrame en sitio y lo devuelve (retorno por conveniencia).
 
     Excepciones
-    ----------
+    
     KeyError
         Si faltan en `df` las columnas especificadas por `k_line`, `d_line`, `ema_long` o `close`.
     """
@@ -328,7 +328,7 @@ def ichimoku_buy_signals(df, tenkan='ichimoku_conversion', kijun='ichimoku_base'
     Genera una columna de señales de compra basadas en Ichimoku con filtros de RSI y ADX.
 
     Parámetros
-    ----------
+    
     df : pandas.DataFrame
         DataFrame que contiene las columnas necesarias para calcular la señal.
     tenkan : str, opcional
@@ -361,7 +361,7 @@ def ichimoku_buy_signals(df, tenkan='ichimoku_conversion', kijun='ichimoku_base'
         La columna se añade/modifica en el DataFrame proporcionado (operación in-place).
 
     Comportamiento y lógica
-    -----------------------
+    ---
     La señal 'signal_ichimoku_buy' se activa (True) cuando se cumplen simultáneamente:
     - El precio de cierre está por encima de Senkou Span A y Senkou Span B (precio por encima de la nube).
     - La línea Tenkan está por encima de la línea Kijun.
@@ -404,7 +404,7 @@ def ichimoku_signal_aggressive(
     Genera una señal de compra agresiva basada en el cruce del Tenkan sobre el Kijun dentro de la nube de Ichimoku,
     filtrada por un umbral de ADX para asegurar fuerza de tendencia.
     Parámetros:
-    -----------
+    -
     df : pandas.DataFrame
         DataFrame que contiene las columnas necesarias para calcular la señal.
     tenkan : str, opcional
@@ -466,7 +466,7 @@ def ichimoku_signal_kijun_cross(df, kijun='ichimoku_base', senkou_a='ichimoku_a'
     Genera una señal de compra basada en el cruce del precio de cierre sobre la línea Kijun de Ichimoku,
     filtrada por la posición del precio respecto a Senkou Span A y un rango específico de RSI.
     Parámetros:
-    -----------
+    -
     df : pandas.DataFrame
         DataFrame que contiene las columnas necesarias para calcular la señal.
     kijun : str, opcional
@@ -518,7 +518,7 @@ def ichimoku_signal_chikou_break(df, tenkan='ichimoku_conversion', kijun='ichimo
     filtrada por la posición del Tenkan y Kijun.
     
     Parámetros:
-    -----------
+    -
     df : pandas.DataFrame
         DataFrame que contiene las columnas necesarias para calcular la señal.
     tenkan : str, opcional
@@ -568,7 +568,7 @@ def bollinger_reversion_signal(df, close_col='close', lband_col='bollinger_lband
     Genera una señal de compra por reversión a la media usando Bandas de Bollinger.
     
     Parámetros:
-    -----------
+    -
         df (pandas.DataFrame): DataFrame que contiene las columnas necesarias para el cálculo.
         close_col (str, opcional): Nombre de la columna que contiene los precios de cierre. Por defecto 'close'.
         lband_col (str, opcional): Nombre de la columna que contiene la banda inferior de Bollinger. Por defecto 'bollinger_lband'.
@@ -576,7 +576,7 @@ def bollinger_reversion_signal(df, close_col='close', lband_col='bollinger_lband
         rsi_col (str, opcional): Nombre de la columna que contiene el RSI. Por defecto 'rsi'.
 
     Comportamiento:
-    -----------
+    -
         - Calcula si el precio de cierre cruza por debajo de la banda inferior de Bollinger.
         - Crea una columna booleana 'signal_bollinger_buy' que será True cuando se cumplan todas las condiciones:
             1. El precio de cierre cruza por debajo de la banda inferior de Bollinger (de arriba hacia abajo).
@@ -585,10 +585,10 @@ def bollinger_reversion_signal(df, close_col='close', lband_col='bollinger_lband
         - Modifica el DataFrame de entrada añadiendo la columna mencionada y devuelve el mismo DataFrame (operación in-place).
         
     Retorno:
-    -----------
+    -
         pandas.DataFrame: El DataFrame original con la columna añadida 'signal_bollinger_buy'.
     Notas:
-    -----------
+    -
         - El DataFrame debe contener las columnas indicadas por los parámetros; de lo contrario se lanzará un KeyError.
         - Si no se desea modificar el DataFrame original, pasar una copia (por ejemplo, df.copy()).
         - La señal 'signal_bollinger_buy' está diseñada para detectar condiciones de sobreventa en una tendencia alcista.
@@ -612,7 +612,7 @@ def create_combined_signal(df, signal1, signal2, window=3):
     La nueva columna se nombra dinámicamente, ej: 'signal_macd_&_stochastic'.
     
     Parametros:
-    -----------
+    -
     
         df (pd.DataFrame): El DataFrame que ya contiene las señales individuales.
         signal1 (str): El nombre de la primera señal (la principal).
@@ -620,11 +620,11 @@ def create_combined_signal(df, signal1, signal2, window=3):
         window (int): La ventana de días para la señal de confirmación.
         
     Retorna:
-    -----------
+    -
         tuple: Un DataFrame actualizado con la nueva señal combinada y el nombre de la nueva señal.
         Si no se encuentran las columnas de señales, devuelve el DataFrame original y None.
     Notas:
-    -----------
+    -
         - La función asume que las señales en el DataFrame son booleanas (True/False).
         - La nueva señal será True solo cuando 'signal1' sea True y 'signal2
             haya sido True al menos una vez en los últimos 'window' días.
@@ -649,9 +649,9 @@ def create_combined_signal(df, signal1, signal2, window=3):
     return df, new_signal_name
 
 
-# -----------------------------------------------------------------------------
+# -------
 # FUNCIONES DE BACKTESTING
-# -----------------------------------------------------------------------------
+# -------
 
 def generar_estrategias_combinadas(df: pd.DataFrame, combinaciones_a_crear: list, window: int = 3) -> tuple[pd.DataFrame, list]:
     """
@@ -700,7 +700,7 @@ def backtest_dca_pure(df, price_col='close', date_col='date', monthly_invest=200
     No se realizan operaciones de trading, solo se acumulan acciones con las aportaciones mensuales.
     
     Parámetros:
-    -----------
+    -
     
         df (pandas.DataFrame): DataFrame que contiene las columnas necesarias para el cálculo.
         price_col (str, opcional): Nombre de la columna que contiene los precios de cierre
@@ -709,7 +709,7 @@ def backtest_dca_pure(df, price_col='close', date_col='date', monthly_invest=200
         defecto 200.
 
     Comportamiento:
-    -----------
+    -
         - Convierte la columna de fechas a formato datetime.
         - Itera sobre cada fila del DataFrame, realizando una aportación mensual fija
         cuando cambia el mes.
@@ -720,7 +720,7 @@ def backtest_dca_pure(df, price_col='close', date_col='date', monthly_invest=200
         - Imprime los resultados del backtest.
 
     Retorno:
-    -----------
+    -
         tuple: Un diccionario con los resultados del backtest y un DataFrame con el valor del portafolio a lo largo del tiempo.
     Notas:
         - El DataFrame debe contener las columnas indicadas por los parámetros; de lo contrario se lanzará un KeyError.
@@ -790,7 +790,7 @@ def backtest_dca_plus_trading_WITH_SL(df, price_col='close',
     y el inversor solo trabaje con el dinero generado con la estrategia, de modo que el riesto sobre el capital propio se vea reducido a 0 y este sea el producido por el mismo sistema. 
     
     Parámetros:
-    -----------
+    -
         df (pandas.DataFrame): DataFrame que contiene las columnas necesarias para el cálculo.
         price_col (str, opcional): Nombre de la columna que contiene los precios de cierre
         signal_col (str, opcional): Nombre de la columna que contiene las señales de compra. Por defecto 'signal_ema_price'.
@@ -802,7 +802,7 @@ def backtest_dca_plus_trading_WITH_SL(df, price_col='close',
         initial_trading_cash (float, opcional): Capital inicial disponible para trading. Por defecto 1000.
         verbose (bool, opcional): Si es True, imprime los resultados del backtest. Por defecto True.
     Comportamiento:
-    -----------
+    -
         - Convierte la columna de fechas a formato datetime.
         - Itera sobre cada fila del DataFrame, realizando una aportación mensual fija
         cuando cambia el mes.
@@ -814,7 +814,7 @@ def backtest_dca_plus_trading_WITH_SL(df, price_col='close',
         el retorno absoluto y el retorno porcentual.
         - Imprime los resultados del backtest si verbose es True.
     Retorno:
-    -----------
+    -
         dict: Un diccionario con los resultados del backtest.
     Notas:
         - El DataFrame debe contener las columnas indicadas por los parámetros; de lo contrario se lanzará un KeyError.
@@ -933,7 +933,7 @@ def backtest_with_atr_SL(df, price_col='close', signal_col='signal_ema_price',
     Parte de una inversion inicial en la cual ira jugando con ese capital para hacer estas inversiones de modo que con el tiempo este capital se recupere
     y el inversor solo trabaje con el dinero generado con la estrategia, de modo que el riesto sobre el capital propio se vea reducido a 0 y este sea el producido por el mismo sistema.
     Parámetros:
-    -----------
+    -
         df (pandas.DataFrame): DataFrame que contiene las columnas necesarias para el cálculo.
         price_col (str, opcional): Nombre de la columna que contiene los precios de cierre
         signal_col (str, opcional): Nombre de la columna que contiene las señales de compra. Por defecto 'signal_ema_price'.
@@ -946,7 +946,7 @@ def backtest_with_atr_SL(df, price_col='close', signal_col='signal_ema_price',
         atr_col (str, opcional): Nombre de la columna que contiene el ATR. Por defecto 'atr'.
         verbose (bool, opcional): Si es True, imprime los resultados del backtest. Por defecto True.
     Comportamiento:
-    -----------
+    -
         - Convierte la columna de fechas a formato datetime.
         - Itera sobre cada fila del DataFrame, realizando una aportación mensual fija
         cuando cambia el mes.
@@ -958,7 +958,7 @@ def backtest_with_atr_SL(df, price_col='close', signal_col='signal_ema_price',
         el retorno absoluto y el retorno porcentual.
         - Imprime los resultados del backtest si verbose es True.
     Retorno:
-    -----------
+    -
         dict: Un diccionario con los resultados del backtest.
     Notas:
         - El DataFrame debe contener las columnas indicadas por los parámetros; de lo contrario se lanzará un KeyError.
@@ -1073,7 +1073,7 @@ def backtest_dca_plus_trading_NO_SL(df, price_col='close', signal_col='signal_em
     Parte de una inversion inicial en la cual ira jugando con ese capital para hacer estas inversiones de modo que con el tiempo este capital se recupere
     y el inversor solo trabaje con el dinero generado con la estrategia, de modo que el riesto sobre el capital propio se vea reducido a 0 y este sea el producido por el mismo sistema.
     Parámetros:
-    -----------
+    -
         df (pandas.DataFrame): DataFrame que contiene las columnas necesarias para el cálculo.
         price_col (str, opcional): Nombre de la columna que contiene los precios de cierre
         signal_col (str, opcional): Nombre de la columna que contiene las señales de compra. Por defecto 'signal_ema_price'.
@@ -1084,7 +1084,7 @@ def backtest_dca_plus_trading_NO_SL(df, price_col='close', signal_col='signal_em
         initial_trading_cash (float, opcional): Capital inicial disponible para trading. Por defecto 1000.
         verbose (bool, opcional): Si es True, imprime los resultados del backtest. Por defecto True.
     Comportamiento:
-    -----------
+    -
         - Convierte la columna de fechas a formato datetime.
         - Itera sobre cada fila del DataFrame, realizando una aportación mensual fija
         cuando cambia el mes.
@@ -1096,7 +1096,7 @@ def backtest_dca_plus_trading_NO_SL(df, price_col='close', signal_col='signal_em
         el retorno absoluto y el retorno porcentual.
         - Imprime los resultados del backtest si verbose es True.
     Retorno:
-    -----------
+    -
         dict: Un diccionario con los resultados del backtest.
     Notas:
         - El DataFrame debe contener las columnas indicadas por los parámetros; de lo contrario se lanzará un KeyError.
@@ -1200,48 +1200,6 @@ def backtest_dca_plus_trading_NO_SL(df, price_col='close', signal_col='signal_em
 
     return results
 
-
-def evaluate_all_strategies(df_original, signal_columns, backtest_func, backtest_params):
-    """
-    Esta funcion ejecuta el backtest para una lista de estrategias que definimos con anterioridad y nos devuelve una df comparativo de los resultados de cada una, con el fin de evaluar cual es la estrategia 
-    que mejor funciona para posteriormente probarla con los modelos de machine learning entrenados. 
-    
-    Parametros:
-    -----------
-    
-        df_original (pd.DataFrame):  DataFrame con todos los indicadores calculados.
-        signal_columns (list): Una lista con los nombres de las columnas de señales a probar.
-        backtest_func (function): La función de backtest a utilizar (ej. backtest_with_sl).
-        backtest_params (dict): Un diccionario con los parámetros para el backtest.
-    Comportamiento:
-    -----------
-        - Itera sobre cada columna de señales en `signal_columns`.
-        - Para cada señal, crea una copia del DataFrame original para evitar modificaciones no deseadas.
-        - Llama a la función de backtest con la copia del DataFrame y los parámetros proporcionados.
-        - Almacena los resultados de cada backtest en una lista.
-        - Al final, convierte la lista de resultados en un DataFrame y lo ordena por el retorno porcentual.
-    Returns:
-    -----------
-        pd.DataFrame: Un nuevo DataFrame con el resumen de rendimiento de cada estrategia.
-    """
-    results_list = []
-    
-    for signal in signal_columns:
-        print(f"Evaluando: {signal}...")
-        df_copy = df_original.copy()
-        
-        results = backtest_func(
-            df_copy,
-            signal_col=signal,
-            **backtest_params
-        )
-        results_list.append(results)
-        
-    results_df = pd.DataFrame(results_list).sort_values(by='Percentage Return', ascending=False).reset_index(drop=True)
-    
-    return results_df
-
-
 def backtest_dca_self_sufficient(df, price_col='close', 
                                 signal_col='signal_ema_price',
                                 monthly_invest=200, 
@@ -1289,7 +1247,7 @@ def backtest_dca_self_sufficient(df, price_col='close',
         current_price = row[price_col]
         current_date = row[date_col]
         
-        # ---------- DCA mensual ----------
+        #  DCA mensual 
         if last_month is None or current_date.month != last_month:
             if cash >= monthly_invest:
                 dca_shares += monthly_invest / current_price
@@ -1297,7 +1255,7 @@ def backtest_dca_self_sufficient(df, price_col='close',
                 total_dca_contributions += monthly_invest
             last_month = current_date.month
         
-        # ---------- Trading con señales ----------
+        #  Trading con señales 
         remaining_trades = []
         for trade in open_trades:
             return_pct = (current_price - trade['buy_price']) / trade['buy_price']
@@ -1316,7 +1274,7 @@ def backtest_dca_self_sufficient(df, price_col='close',
             trading_contributions += trade_amount
             open_trades.append({'buy_price': current_price, 'shares': shares_bought})
         
-        # ---------- Guardar info diaria para gráfico ----------
+        #  Guardar info diaria para gráfico 
         cash_list.append(cash)
         open_trades_list.append(open_trades.copy())
         dca_shares_list.append(dca_shares)
@@ -1330,7 +1288,7 @@ def backtest_dca_self_sufficient(df, price_col='close',
             daily_return = (portfolio_values[-1] - portfolio_values[-2]) / portfolio_values[-2]
             daily_returns.append(daily_return)
     
-    # ---------- Sharpe Ratio ----------
+    #  Sharpe Ratio 
     if len(daily_returns) > 0:
         risk_free_rate = 0.02  # 2% anual
         daily_rf_rate = (1 + risk_free_rate) ** (1/252) - 1
@@ -1366,12 +1324,19 @@ def backtest_dca_self_sufficient(df, price_col='close',
     
     if verbose:
         print(f"Resultados para: {signal_col} (Self-Sufficient)")
+        print(f"Valor Final del Portafolio: ${final_value:,.2f}")
+        print(f"Total Aportado: ${final_contributions:,.2f}")
+        print(f"Retorno Absoluto: ${absolute_return:,.2f}")
         print(f"Retorno Porcentual: {percentage_return:.2f}%")
+        print(f"Trading PnL: ${trading_pnl:,.2f}")
+        print(f"Capital Usado en Trading: ${trading_contributions:,.2f}")
         print(f"Posiciones Abiertas al Final: {open_trades_at_end}")
         print(f"Valor de Posiciones Abiertas: ${value_of_open_trades:,.2f}")
+        print(f"Total DCA Shares: {dca_shares:,.2f}")
+        print(f"Valor DCA Shares: ${dca_value:,.2f}")
         print(f"Sharpe Ratio: {sharpe_ratio:.2f}\n")
     
-    # ---------- Gráfico de evolución de la cartera ----------
+    #  Gráfico de evolución de la cartera 
     if plot:
         df_plot = df.copy()
         df_plot['dca_value'] = [s * p for s, p in zip(dca_shares_list, df[price_col])]
@@ -1391,21 +1356,68 @@ def backtest_dca_self_sufficient(df, price_col='close',
         plt.show()
 
     return results
-# -----------------------------------------------------------------------------
+
+
+
+def evaluate_all_strategies(df_original, signal_columns, backtest_func, backtest_params):
+    """
+    Esta funcion ejecuta el backtest para una lista de estrategias que definimos con anterioridad y nos devuelve una df comparativo de los resultados de cada una, con el fin de evaluar cual es la estrategia 
+    que mejor funciona para posteriormente probarla con los modelos de machine learning entrenados. 
+    
+    Parametros:
+    -
+    
+        df_original (pd.DataFrame):  DataFrame con todos los indicadores calculados.
+        signal_columns (list): Una lista con los nombres de las columnas de señales a probar.
+        backtest_func (function): La función de backtest a utilizar (ej. backtest_with_sl).
+        backtest_params (dict): Un diccionario con los parámetros para el backtest.
+    Comportamiento:
+    -
+        - Itera sobre cada columna de señales en `signal_columns`.
+        - Para cada señal, crea una copia del DataFrame original para evitar modificaciones no deseadas.
+        - Llama a la función de backtest con la copia del DataFrame y los parámetros proporcionados.
+        - Almacena los resultados de cada backtest en una lista.
+        - Al final, convierte la lista de resultados en un DataFrame y lo ordena por el retorno porcentual.
+    Returns:
+    -
+        pd.DataFrame: Un nuevo DataFrame con el resumen de rendimiento de cada estrategia.
+    """
+    results_list = []
+    
+    for signal in signal_columns:
+        print(f"Evaluando: {signal}...")
+        df_copy = df_original.copy()
+        
+        results = backtest_func(
+            df_copy,
+            signal_col=signal,
+            **backtest_params
+        )
+        results_list.append(results)
+        
+    results_df = pd.DataFrame(results_list).sort_values(by='Percentage Return', ascending=False).reset_index(drop=True)
+    
+    # Redondear valores numéricos a 3 decimales
+    numeric_columns = results_df.select_dtypes(include=['float64', 'int64']).columns
+    results_df[numeric_columns] = results_df[numeric_columns].round(3)
+    
+    return results_df
+
+# -------
 # FUNCIONES DE MACHINE LEARNING
-# -----------------------------------------------------------------------------
+# -------
 
 def crear_target(df, dias_futuro=20, umbral_retorno=0.08):
     """
     Crea la variable objetivo 'target'.
     Será 1 si el precio sube más del 'umbral_retorno' en los próximos 'dias_futuro'.
     Parametros:
-    -----------
+    -
         df (pd.DataFrame): DataFrame con los datos históricos.
         dias_futuro (int, opcional): Número de días en el futuro para calcular el retorno. Por defecto 20.
         umbral_retorno (float, opcional): Umbral de retorno para clasificar como 1. Por defecto 0.08 (8%).
     Returns:
-    -----------
+    -
         pd.DataFrame: DataFrame con la nueva columna 'target'.
     Notas:
         - Asegúrate de que el DataFrame contiene una columna 'close' con los precios de cierre.
@@ -1424,7 +1436,7 @@ def train_evaluate_models (model, model_name:str, X_train, y_train, X_test, y_te
     Esta funcion entrena y evalua un modelo de machine learning, mostrando el informe de clasificacion y la matriz de confusion.
     Ademas, si se especifica, guarda el modelo entrenado en un archivo pickle.
     Parametros:
-    -----------
+    -
         model: El modelo de machine learning a entrenar (debe tener los metodos fit y predict).
         model_name (str): Nombre del modelo, utilizado para guardar el archivo.
         X_train: Datos de entrenamiento (features).
@@ -1434,7 +1446,7 @@ def train_evaluate_models (model, model_name:str, X_train, y_train, X_test, y_te
         save_model (bool, opcional): Si es True, guarda el modelo entrenado. Por defecto False.
         save_dir (str, opcional): Directorio donde se guardará el modelo. Por defecto 'models'.
     Returns:
-    -----------
+    -
         El modelo entrenado.
     Notas:
         - Asegúrate de que el directorio especificado en `save_dir` existe o se puede crear.
@@ -1474,14 +1486,14 @@ def generar_resumen_completo_modelos(model_dir: str, X_test, y_test) -> pd.DataF
     de la matriz de confusión.
 
     Parámetros:
-    -----------
+    -
 
         model_dir (str): La ruta a la carpeta que contiene los archivos .pkl de los modelos.
         X_test: El conjunto de características de prueba (ya escalado).
         y_test: Las etiquetas reales del conjunto de prueba.
 
     Returns:
-    -----------
+    -
         pd.DataFrame: Un DataFrame con el resumen de rendimiento de cada modelo.
     Notas:
         - Asegúrate de que el directorio especificado en `model_dir` existe y contiene archivos .pkl.

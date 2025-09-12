@@ -1544,3 +1544,70 @@ def generar_resumen_completo_modelos(model_dir: str, X_test, y_test) -> pd.DataF
     
     print("Evaluación completada ")
     return results_df
+
+#----------------------------------------------
+#       PIPELINE
+#----------------------------------------------
+
+def pipeline_ticker(ticker: str, model, scaler, backtest_params: dict,strategy) -> dict:
+
+    """
+    Ejecuta el pipeline completo para un ticker.
+
+    Pasos:
+    1. Descarga y limpia datos históricos del ticker.
+    2. Calcula indicadores técnicos.
+    3. Genera nuevas features (Ichimoku, etc.).
+    4. Escala los datos con un scaler preentrenado.
+    5. Predice señales con el modelo cargado.
+    6. Ejecuta backtesting con la estrategia indicada.
+
+    Args:
+        ticker (str): símbolo del ETF o acción.
+        model: modelo de ML entrenado (ej. XGBoost, RandomForest).
+        scaler: objeto de escalado entrenado (ej. StandardScaler).
+        backtest_params (dict): parámetros del backtesting.
+        strategy (callable): función de estrategia para el backtest.
+
+    Returns:
+        dict: resultados del backtesting enriquecidos con el ticker.
+    """
+    print('Iniciando Pipeline para el ticker:',{ticker})
+    print('---'*15)
+    
+    try: 
+        df = extract_clean_ticker(ticker,start='2011-01-01',end='2025-06-01', interval='1d')    
+        df['date'] = pd.to_datetime(df['date'])
+        
+        if df.empty: 
+            return None
+        df = añadir_indicadores_tecnicos(df)
+        
+
+        df['price_vs_kijun'] = df['close'] - df['ichimoku_base']
+        df['tenkan_vs_kijun'] = df['ichimoku_conversion'] - df['ichimoku_base']
+
+
+        df = df.dropna()
+        features = [
+            'rsi', 'macd_diff', 'bollinger_width', 'atr', 'adx', 
+            'volume_ratio', 'price_vs_kijun', 'tenkan_vs_kijun']
+        X = df[features]
+        X_scaled=scaler.transform(X)
+        
+        df['ml_signal'] = model.predict(X_scaled)
+        
+        results = strategy(
+            df,
+            signal_col='ml_signal',
+            **backtest_params
+        )
+        
+
+        results['Ticker'] = ticker
+        print(f"Pipeline para {ticker} completado.")
+        return results
+
+    except Exception as e:
+        print(f"ERROR: No se pudo completar la pipeline para {ticker}. Causa: {e}")
+        return None

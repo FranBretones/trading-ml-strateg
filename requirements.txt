@@ -8,3 +8,5 @@ ta==0.11.0
 scikit-learn==1.5.1
 xgboost==2.1.1
 imbalanced-learn==0.12.3
+jupyter_client==8.6.3
+jupyter_core==5.8.1

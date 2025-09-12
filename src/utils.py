@@ -2,17 +2,11 @@
 
 #Librerias sistema
 import os
-import sys
-from pathlib import Path
 import glob
 
 # Manipuladcion de datos 
 import pandas as pd 
 import numpy as np
-from datetime import datetime, timedelta
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
 import matplotlib.pyplot as plt
 
 #libreria para descargar datos de productos financieros
@@ -26,18 +20,8 @@ from ta.volatility import BollingerBands, AverageTrueRange
 from ta.trend import SMAIndicator, EMAIndicator
 
 # Librerias para modelos de ML
-from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay,confusion_matrix
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
-from imblearn.over_sampling import SMOTE
-from xgboost import XGBClassifier
 import pickle
 
 # -------

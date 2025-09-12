@@ -1,3 +1,5 @@
 *.xlsx
 pruebas.ipynb
 src/__pycache__/
+comments.md
+venv/

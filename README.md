@@ -23,7 +23,7 @@ Sigue estos pasos para clonar y llevar el proyecto a tu propio entonrno virtual.
 
 ### 4.⚙️ Instalar dependencias
 
-- Actualiza pip e instala desde **requirement.txt**:
+- Actualiza pip e instala desde **requirements.txt**:
 
     - ``` pip install --upgrade pip ``` 
     - ``` pip install -r requirements.txt ```

@@ -9,17 +9,17 @@ Sigue estos pasos para clonar y llevar el proyecto a tu propio entonrno virtual.
 
 ### 2. 🖥️ Crea un entorno virtual (recomndado Python3.10 o superior.)
 
-   - ``` python -m venv .venv ```
+   - ``` python -m venv venv ```
 
-### 3.✅Activa el entorno virtual
+### 3.✅ Activa el entorno virtual
 
 - Si trabajas en **Mac/Linux**:
 
-  - ``source .venv/bin/activate``
+  - ``source venv/bin/activate``
 
 - Si trabajas en **Windows(GitBash/PoweShell)**:
 
-  - ``.venv\Scripts\activate``
+  - ``venv\Scripts\activate``
 
 ### 4.⚙️ Instalar dependencias
 
@@ -36,10 +36,10 @@ Sigue estos pasos para clonar y llevar el proyecto a tu propio entonrno virtual.
 
 - Si deseas contribuir:
 
-  **1** . Haz un fork del repositorio
+  **1**. Haz un fork del repositorio
 
   **2**. Crea una nueva rama ``` git checkout -b feature/nueva-funcionalidad ```
 
-  **3**.Realiza tus cambios y haz commit ``` git commit -m 'Agrego nueva funcionalidad' ```
+  **3**. Realiza tus cambios y haz commit ``` git commit -m 'Agrego nueva funcionalidad' ```
 
   **4**. Envía un pull request

@@ -4,7 +4,7 @@ Sigue estos pasos para clonar y llevar el proyecto a tu propio entonrno virtual.
 
 ### 1.🔗 Clonar el repositorio
 
-  - ``` bash git clone https://github.com/FranBretones/trading-ml-strateg ``` 
+  - ```git clone https://github.com/FranBretones/trading-ml-strateg ``` 
   - ``cd trading-ml-strateg``
 
 ### 2. 🖥️ Crea un entorno virtual (recomndado Python3.10 o superior.)

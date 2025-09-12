@@ -1343,7 +1343,6 @@ def backtest_dca_self_sufficient(df, price_col='close',
         df_plot['trading_value'] = [sum(t['shares'] * p for t in trades) for trades, p in zip(open_trades_list, df[price_col])]
         df_plot['cash'] = cash_list
         df_plot['total_portfolio'] = df_plot['dca_value'] + df_plot['trading_value'] + df_plot['cash']
-        
         plt.figure(figsize=(14,7))
         plt.plot(df_plot['date'], df_plot['total_portfolio'], label='Capital Total', color='blue', linewidth=2)
         plt.fill_between(df_plot['date'], 0, df_plot['dca_value'], color='green', alpha=0.3, label='DCA acumulado')

@@ -28,26 +28,25 @@ import pickle
 # FUNCIONES DE DESCARGA, LIMPIEZA DE DATOS Y CÁLCULO DE INDICADORES
 # -------
 
-def extract_clean_ticker(ticker: str, start=None, end=None, interval=None) -> pd.DataFrame:
+def extract_clean_ticker(ticker: str, **kwargs) -> pd.DataFrame:
     """
     Descarga y limpia datos históricos de un ticker con yfinance y genera todo el dataframe que se utilizara para analizar el stock. 
     
     Args:
         ticker (str): Símbolo del ticker (ej: 'VOO', '^GSPC')
-        start (str): Fecha de inicio 'YYYY-MM-DD'
-        end (str): Fecha de fin 'YYYY-MM-DD'
-        interval (str): Intervalo temporal ('1d', '1wk', '1h', etc.)
+        **kwargs: Parámetros adicionales para `yfinance.download`, como:
+            start (str): Fecha de inicio 'YYYY-MM-DD'
+            end (str): Fecha de fin 'YYYY-MM-DD'
+            interval (str): Intervalo temporal ('1d', '1wk', '1h', etc.)
         
     Returns:
         pd.DataFrame: DataFrame limpio con columnas estandarizadas.
     """
     df = yf.download(
         tickers=ticker,
-        start=start,
-        end=end,
-        interval=interval,
         auto_adjust=True,
-        progress=False
+        progress=False,
+        **kwargs
     )
 
     if isinstance(df.columns, pd.MultiIndex):

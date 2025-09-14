@@ -2,17 +2,11 @@
 
 #Librerias sistema
 import os
-import sys
-from pathlib import Path
 import glob
 
 # Manipuladcion de datos 
 import pandas as pd 
 import numpy as np
-from datetime import datetime, timedelta
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
 import matplotlib.pyplot as plt
 
 #libreria para descargar datos de productos financieros
@@ -26,18 +20,8 @@ from ta.volatility import BollingerBands, AverageTrueRange
 from ta.trend import SMAIndicator, EMAIndicator
 
 # Librerias para modelos de ML
-from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay,confusion_matrix
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
-from imblearn.over_sampling import SMOTE
-from xgboost import XGBClassifier
 import pickle
 
 # -------
@@ -321,8 +305,146 @@ def stochastic_oversold_signal(df, k_line='stochastic_k', d_line='stochastic_d',
     return df
 
 ## Estrategias con Ichimoku (Equilibrio y Soportes) 
+ 
 
-#  Ichimoku Cruce del Kijun (Señal temprana de equilibrio)
+#  Ichimoku Conservadora:  
+def ichimoku_buy_signals(df, tenkan='ichimoku_conversion', kijun='ichimoku_base',senkou_a='ichimoku_a', senkou_b='ichimoku_b',close='close', rsi='rsi', adx='adx'):
+    """
+    Genera una columna de señales de compra basadas en Ichimoku con filtros de RSI y ADX.
+
+    Parámetros
+    
+    df : pandas.DataFrame
+        DataFrame que contiene las columnas necesarias para calcular la señal.
+    tenkan : str, opcional
+        Nombre de la columna correspondiente a la línea Tenkan/Conversión.
+        Por defecto 'ichimoku_conversion'.
+    kijun : str, opcional
+        Nombre de la columna correspondiente a la línea Kijun/Base.
+        Por defecto 'ichimoku_base'.
+    senkou_a : str, opcional
+        Nombre de la columna para Senkou Span A (parte de la nube).
+        Por defecto 'ichimoku_a'.
+    senkou_b : str, opcional
+        Nombre de la columna para Senkou Span B (parte de la nube).
+        Por defecto 'ichimoku_b'.
+    close : str, opcional
+        Nombre de la columna de precio de cierre.
+        Por defecto 'close'.
+    rsi : str, opcional
+        Nombre de la columna del RSI.
+        Por defecto 'rsi'.
+    adx : str, opcional
+        Nombre de la columna del ADX.
+        Por defecto 'adx'.
+
+    Retorna
+    -------
+    pandas.DataFrame
+        El mismo DataFrame recibido con una nueva columna booleana
+        'signal_ichimoku_buy' que vale True cuando se cumple la señal de compra.
+        La columna se añade/modifica en el DataFrame proporcionado (operación in-place).
+
+    Comportamiento y lógica
+    ---
+    La señal 'signal_ichimoku_buy' se activa (True) cuando se cumplen simultáneamente:
+    - El precio de cierre está por encima de Senkou Span A y Senkou Span B (precio por encima de la nube).
+    - La línea Tenkan está por encima de la línea Kijun.
+    - Ha ocurrido un cruce alcista en el período actual respecto al anterior:
+    tenkan > kijun y tenkan.shift(1) <= kijun.shift(1).
+    - El RSI es menor que 70 (evitar condiciones de sobrecompra).
+    - El ADX es mayor que 20 (indica fuerza de la tendencia).
+
+    Notas
+    -----
+    - Si falta alguna de las columnas especificadas en los argumentos, se producirá un KeyError.
+    - La columna añadida es de tipo booleano.
+    - Si no desea modificar el DataFrame original, pase una copia: df.copy().
+    
+    Ejemplo de uso
+    -----
+        df = ichimoku_buy_signals(df, tenkan='ichimoku_conversion', kijun='ichimoku_base',
+                                senkou_a='ichimoku_a', senkou_b='ichimoku_b',
+                                close='close', rsi='rsi', adx='adx')
+    
+    """
+    
+    df['signal_ichimoku_buy'] = (
+        (df[close] > df[senkou_a])
+        & (df[close] > df[senkou_b])
+        & (df[tenkan] > df[kijun])
+        & (df[tenkan].shift(1) <= df[kijun].shift(1))
+        & (df[rsi] < 70)
+        & (df[adx] > 20)
+    )
+    return df
+
+# 4.2 Ichimoku Agresiva (Cruce dentro de la nube)
+def ichimoku_signal_aggressive(
+    df, tenkan='ichimoku_conversion', 
+    kijun='ichimoku_base',
+    senkou_a='ichimoku_a', senkou_b='ichimoku_b',
+    close='close', adx='adx'):
+    """
+    Genera una señal de compra agresiva basada en el cruce del Tenkan sobre el Kijun dentro de la nube de Ichimoku,
+    filtrada por un umbral de ADX para asegurar fuerza de tendencia.
+    Parámetros:
+    -
+    df : pandas.DataFrame
+        DataFrame que contiene las columnas necesarias para calcular la señal.
+    tenkan : str, opcional
+        Nombre de la columna correspondiente a la línea Tenkan/Conversión.
+        Por defecto 'ichimoku_conversion'.
+    kijun : str, opcional
+        Nombre de la columna correspondiente a la línea Kijun/Base.
+        Por defecto 'ichimoku_base'.
+    senkou_a : str, opcional
+        Nombre de la columna para Senkou Span A (parte de la nube).
+        Por defecto 'ichimoku_a'.
+    senkou_b : str, opcional
+        Nombre de la columna para Senkou Span B (parte de la nube).
+        Por defecto 'ichimoku_b'.
+    close : str, opcional
+        Nombre de la columna de precio de cierre.
+        Por defecto 'close'.
+    adx : str, opcional
+        Nombre de la columna del ADX.
+        Por defecto 'adx'.
+    Retorna:
+    --------
+    pandas.DataFrame
+        El mismo DataFrame recibido con una nueva columna booleana
+        'signal_ichimoku_aggressive' que vale True cuando se cumple la señal de compra agresiva.
+        La columna se añade/modifica en el DataFrame proporcionado (operación in-place).
+    Comportamiento y lógica:
+    La señal 'signal_ichimoku_aggressive' se activa (True) cuando se cumplen simultáneamente:
+    - La línea Tenkan cruza por encima de la línea Kijun en el período actual respecto al anterior:
+    tenkan > kijun y tenkan.shift(1) <= kijun.shift(1).
+    - El precio de cierre está dentro de la nube de Ichimoku, es decir, entre Senkou Span A y Senkou Span B.
+    - El ADX es mayor que 18, indicando una tendencia con suficiente fuerza.
+    Notas:
+    -----
+    - Si falta alguna de las columnas especificadas en los argumentos, se producirá un KeyError.
+    - La columna añadida es de tipo booleano.
+    - Esta señal es más agresiva ya que busca entradas dentro de la nube, lo que puede implicar mayor riesgo.
+    
+    - Se recomienda usar esta señal en combinación con otras confirmaciones para mejorar la fiabilidad.
+    """
+    
+    inside_cloud = (
+        (df[close] > df[[senkou_a, senkou_b]].min(axis=1)) &
+        (df[close] < df[[senkou_a, senkou_b]].max(axis=1))
+    )
+    
+    df['signal_ichimoku_aggressive'] = (
+        (df[tenkan] > df[kijun])
+        & (df[tenkan].shift(1) <= df[kijun].shift(1))
+        & inside_cloud
+        & (df[adx] > 18)
+    )
+    return df
+
+# 4.3 Ichimoku Cruce del Kijun (Señal temprana de equilibrio)
 
 def ichimoku_signal_kijun_cross(df, kijun='ichimoku_base', senkou_a='ichimoku_a',close='close', rsi='rsi'):
     """
@@ -369,6 +491,60 @@ def ichimoku_signal_kijun_cross(df, kijun='ichimoku_base', senkou_a='ichimoku_a'
         & (df[close].shift(1) <= df[kijun].shift(1))
         & (df[close] > df[senkou_a])
         & (df[rsi].between(40, 60))
+    )
+    return df
+
+# 4.4 Ichimoku Ruptura del Chikou Span (Confirmación rápida)
+
+def ichimoku_signal_chikou_break(df, tenkan='ichimoku_conversion', kijun='ichimoku_base',close='close'):
+    
+    """
+    Genera una señal de compra basada en el cruce del Chikou Span (precio retrasado) sobre el precio pasado,
+    filtrada por la posición del Tenkan y Kijun.
+    
+    Parámetros:
+    -
+    df : pandas.DataFrame
+        DataFrame que contiene las columnas necesarias para calcular la señal.
+    tenkan : str, opcional
+        Nombre de la columna correspondiente a la línea Tenkan/Conversión.
+        Por defecto 'ichimoku_conversion'.
+    kijun : str, opcional
+        Nombre de la columna correspondiente a la línea Kijun/Base.
+        Por defecto 'ichimoku_base'.
+    close : str, opcional
+        Nombre de la columna de precio de cierre.
+        Por defecto 'close'.
+        
+    Retorna:
+    --------
+    pandas.DataFrame
+        El mismo DataFrame recibido con una nueva columna booleana
+        'signal_ichimoku_chikou' que vale True cuando se cumple la señal de compra.
+        La columna se añade/modifica en el DataFrame proporcionado (operación in-place).
+    Comportamiento y lógica:
+    La señal 'signal_ichimoku_chikou' se activa (True) cuando se cumplen simultáneamente:
+    - El Chikou Span (precio de cierre desplazado 26 períodos hacia atrás)
+    cruza por encima del precio de cierre pasado: chikou_span > past_price
+    - La línea Tenkan está por encima de la línea Kijun.
+    - Ha ocurrido un cruce alcista en el período actual respecto al anterior:
+    tenkan > kijun y tenkan.shift(1) <= kijun.shift(1).
+    
+    Notas:
+    -----
+    - Si falta alguna de las columnas especificadas en los argumentos, se producirá un Key
+    - La columna añadida es de tipo booleano.
+    - Esta señal es una confirmación rápida basada en el Chikou Span.
+    - Se recomienda usar esta señal en combinación con otras confirmaciones para mejorar la fiabilidad.
+    """
+    
+    chikou_span = df[close].shift(-26)
+    past_price = df[close]
+    df['signal_ichimoku_chikou'] = (
+        (chikou_span > past_price)
+        & (chikou_span.shift(1) <= past_price.shift(1))
+        & (df[close] > df[tenkan])
+        & (df[tenkan] > df[kijun])
     )
     return df
 

@@ -169,8 +169,7 @@ En el backtest inicial las diferentes estrategias arrojaron los siguientes datos
     - Retorno: 186.98%
     - Sharpe Ratio: 0.76 
 
-## 6. Conclusiones: 
-- Dados los resultados obtenidos 
+# [📄Presentación (PDF)](../trading-ml-strateg/reports/presentacion%20proyecto%20final%20.pdf)
 
 
 
